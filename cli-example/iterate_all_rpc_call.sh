@@ -67,6 +67,11 @@ stop_server() {
     `cli_prompt $seed` stop
 }
 
+uname -a
+ps -p $$
+ps $$
+ps
+
 make partial-gx-rw
 go build
 
