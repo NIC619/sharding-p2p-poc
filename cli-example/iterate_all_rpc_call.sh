@@ -42,7 +42,9 @@ subscribe_shard() {
     echo "${p:1}"
     echo "${@:0}"
     echo "${@:1}"
+    echo "${@:2}"
     echo "${p[@]:0}"
+    echo "$params"
     echo "${p[@]:1}"
     echo "${p[@]:2}"
     `cli_prompt $seed` subshard $params
