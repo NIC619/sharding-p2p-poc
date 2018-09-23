@@ -26,6 +26,7 @@ cli_prompt() {
 add_peer() {
     seed0=$1
     seed1=$2
+    echo "`cli_prompt`"
     echo "`cli_prompt $seed0`"
     `cli_prompt $seed0` addpeer $IP $((PORT+seed1)) $seed1
 }
@@ -35,7 +36,12 @@ subscribe_shard() {
     p=$@
     seed=$1
     params=${p[@]:1}
+    echo "${p}"
+    echo "${#p}"
+    echo "${p[@]}"
+    echo "${#p[@]}"
     echo "$params"
+    echo "${p[@]:2}"
     `cli_prompt $seed` subshard $params
 }
 
