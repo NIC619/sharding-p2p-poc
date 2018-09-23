@@ -49,6 +49,7 @@ func (s *server) AddPeer(
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.AddPeer", s.serializedSpanCtx)
 	if err != nil {
 		log.Printf("Failed to deserialize parent span context, err: %v", err)
+		spanctx = logger.Start(ctx, "RPCServer.AddPeer")
 	}
 	defer logger.Finish(spanctx)
 
