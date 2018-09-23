@@ -26,6 +26,7 @@ cli_prompt() {
 add_peer() {
     seed0=$1
     seed1=$2
+    echo "`cli_prompt $seed0`"
     `cli_prompt $seed0` addpeer $IP $((PORT+seed1)) $seed1
 }
 
@@ -34,6 +35,7 @@ subscribe_shard() {
     p=$@
     seed=$1
     params=${p[@]:1}
+    echo "$params"
     `cli_prompt $seed` subshard $params
 }
 
@@ -83,12 +85,12 @@ done
 sleep 2
 
 # peer 0 add peer 1
-# add_peer 0 1
-./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client addpeer $IP $((PORT+1)) 1
+add_peer 0 1
+# ./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client addpeer $IP $((PORT+1)) 1
 
 # peer 0 subscribe shard
-# subscribe_shard 0 1 2 3 4 5
-./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client subshard 1 2 3 4 5
+subscribe_shard 0 1 2 3 4 5
+# ./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client subshard 1 2 3 4 5
 
 # # peer 1 subscribe shard
 # subscribe_shard 1 2 3 4
