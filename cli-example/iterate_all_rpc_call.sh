@@ -38,8 +38,10 @@ subscribe_shard() {
     params=${p[@]:1}
     echo "${p}"
     echo "${#p}"
+    echo "${#@}"
     echo "${p[@]}"
-    echo "${#p[@]}"
+    echo "${p:0}"
+    echo "${p[@]:0}"
     echo "$params"
     echo "${p[@]:2}"
     `cli_prompt $seed` subshard $params
@@ -95,7 +97,7 @@ add_peer 0 1
 # ./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client addpeer $IP $((PORT+1)) 1
 
 # peer 0 subscribe shard
-subscribe_shard 0 1 2 3 4 5
+subscribe_shard 0 5 6 7
 # ./sharding-p2p-poc -rpcport=$((RPCPORT+0)) -client subshard 1 2 3 4 5
 
 # # peer 1 subscribe shard
