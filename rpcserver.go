@@ -71,6 +71,7 @@ func makePlainResponse(success bool, message string) *pbrpc.RPCPlainResponse {
 func (s *server) AddPeer(
 	ctx context.Context,
 	req *pbrpc.RPCAddPeerRequest) (*pbrpc.RPCPlainResponse, error) {
+	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr())
 	// Add span for AddPeer of RPC Server
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.AddPeer", s.serializedSpanCtx)
 	if err != nil {
@@ -183,6 +184,7 @@ func (s *server) UnsubscribeShard(
 func (s *server) GetSubscribedShard(
 	ctx context.Context,
 	req *pbrpc.RPCGetSubscribedShardRequest) (*pbrpc.RPCGetSubscribedShardResponse, error) {
+	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr())
 	// Add span for GetSubscribedShard
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.GetSubscribedShard", s.serializedSpanCtx)
 	if err != nil {
@@ -338,6 +340,7 @@ func runRPCServer(n *Node, addr string) {
 		s.Stop()
 	}()
 
+	logger.Error("s: ", s.GetServiceInfo()["serializedSpanCtx"], "xxx", s.GetServiceInfo()["node"])
 	logger.Info("RPC server listening to address: %v", addr)
 	if err := s.Serve(lis); err != nil {
 		logger.FinishWithErr(ctx, fmt.Errorf("Failed to serve the RPC server, err: %v", err))
