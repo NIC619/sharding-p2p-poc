@@ -316,7 +316,7 @@ func runRPCServer(n *Node, addr string) {
 	// Start a new trace
 	ctxb := context.Background()
 	ctx := logger.Start(ctxb, "RPCServer")
-	defer logger.Finish(ctx)
+	// defer logger.Finish(ctx)
 	logger.SetTag(ctx, "Node ID %s", n.host.ID().Pretty())
 	serializedSpanCtx, err := logger.SerializeContext(ctx)
 	if err != nil {
@@ -331,7 +331,7 @@ func runRPCServer(n *Node, addr string) {
 		logger.Fatalf("Failed to set up a service listening on %s, err: %v", addr, err)
 	}
 	s := grpc.NewServer()
-	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s, ctx: ctx, bt: []byte{0, 1, 3, 5, 7}})
+	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s, ctx: ctx, bt: []byte{100, 122, 33, 51, 77}})
 
 	// Catch interupt signal
 	c := make(chan os.Signal)
@@ -342,7 +342,7 @@ func runRPCServer(n *Node, addr string) {
 		s.Stop()
 	}()
 
-	logger.Error("s: ", s.GetServiceInfo(), "ooo", ctx, ctxb, "aaa", serializedSpanCtx)
+	logger.Error("s: ", ctx, ctxb, "aaa", serializedSpanCtx)
 	logger.Info("RPC server listening to address: %v", addr)
 	if err := s.Serve(lis); err != nil {
 		logger.FinishWithErr(ctx, fmt.Errorf("Failed to serve the RPC server, err: %v", err))
