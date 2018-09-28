@@ -23,6 +23,7 @@ type server struct {
 	node              *Node
 	serializedSpanCtx []byte
 	rpcServer         *grpc.Server
+	ctx               context.Context
 }
 
 func parseAddr(addrString string) (peer.ID, ma.Multiaddr, error) {
@@ -71,7 +72,7 @@ func makePlainResponse(success bool, message string) *pbrpc.RPCPlainResponse {
 func (s *server) AddPeer(
 	ctx context.Context,
 	req *pbrpc.RPCAddPeerRequest) (*pbrpc.RPCPlainResponse, error) {
-	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr())
+	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr(), "ooo", s.ctx)
 	// Add span for AddPeer of RPC Server
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.AddPeer", s.serializedSpanCtx)
 	if err != nil {
@@ -184,7 +185,7 @@ func (s *server) UnsubscribeShard(
 func (s *server) GetSubscribedShard(
 	ctx context.Context,
 	req *pbrpc.RPCGetSubscribedShardRequest) (*pbrpc.RPCGetSubscribedShardResponse, error) {
-	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr())
+	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr(), "ooo", s.ctx)
 	// Add span for GetSubscribedShard
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.GetSubscribedShard", s.serializedSpanCtx)
 	if err != nil {
@@ -329,7 +330,7 @@ func runRPCServer(n *Node, addr string) {
 		logger.Fatalf("Failed to set up a service listening on %s, err: %v", addr, err)
 	}
 	s := grpc.NewServer()
-	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s})
+	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s, ctx: ctx})
 
 	// Catch interupt signal
 	c := make(chan os.Signal)
@@ -340,7 +341,7 @@ func runRPCServer(n *Node, addr string) {
 		s.Stop()
 	}()
 
-	logger.Error("s: ", s.GetServiceInfo()["serializedSpanCtx"], "xxx", s.GetServiceInfo()["node"])
+	logger.Error("s: ", s.GetServiceInfo(), "ooo", ctx)
 	logger.Info("RPC server listening to address: %v", addr)
 	if err := s.Serve(lis); err != nil {
 		logger.FinishWithErr(ctx, fmt.Errorf("Failed to serve the RPC server, err: %v", err))
