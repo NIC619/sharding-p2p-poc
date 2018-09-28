@@ -106,4 +106,6 @@ do
     stop_server $i
 done
 
+sleep 1
+
 make gx-uw
