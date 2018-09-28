@@ -15,6 +15,7 @@ import (
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 	ma "github.com/multiformats/go-multiaddr"
+	opentracing "github.com/opentracing/opentracing-go"
 	"google.golang.org/grpc"
 )
 
@@ -73,6 +74,7 @@ func makePlainResponse(success bool, message string) *pbrpc.RPCPlainResponse {
 func (s *server) AddPeer(
 	ctx context.Context,
 	req *pbrpc.RPCAddPeerRequest) (*pbrpc.RPCPlainResponse, error) {
+	logger.Error("global tracer: ", opentracing.GlobalTracer())
 	logger.Error("s: ", s.serializedSpanCtx, "xxx", s.node.GetFullAddr(), "ooo", s.ctx, "aaa", s.bt)
 	// Add span for AddPeer of RPC Server
 	spanctx, err := logger.StartFromParentState(ctx, "RPCServer.AddPeer", s.serializedSpanCtx)
@@ -315,6 +317,7 @@ func runRPCServer(n *Node, addr string) {
 	// logging.SetLogLevel("sharding-p2p", "DEBUG")
 	// Start a new trace
 	ctxb := context.Background()
+	logger.Error("global tracer: ", opentracing.GlobalTracer())
 	ctx := logger.Start(ctxb, "RPCServer")
 	// defer logger.Finish(ctx)
 	logger.SetTag(ctx, "Node ID %s", n.host.ID().Pretty())

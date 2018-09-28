@@ -158,8 +158,6 @@ func runServer(
 	if err != nil {
 		logger.Debugf("Failed to create tracer, err: %v", err)
 	}
-	logger.Error("global tracer: ", opentracing.GlobalTracer())
-	logger.Error("set up tracer", tracer)
 	opentracing.SetGlobalTracer(tracer)
 	logger.Error("global tracer: ", opentracing.GlobalTracer())
 	// End of tracer setup
