@@ -160,6 +160,8 @@ func runServer(
 	}
 	opentracing.SetGlobalTracer(tracer)
 	logger.Error("global tracer: ", opentracing.GlobalTracer())
+	spanctx := logger.Start(ctx, "runServer")
+	logger.Error("sctx ", spanctx)
 	// End of tracer setup
 
 	runRPCServer(node, rpcAddr)
