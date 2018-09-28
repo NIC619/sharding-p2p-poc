@@ -24,6 +24,7 @@ type server struct {
 	serializedSpanCtx []byte
 	rpcServer         *grpc.Server
 	ctx               context.Context
+	bt                []byte
 }
 
 func parseAddr(addrString string) (peer.ID, ma.Multiaddr, error) {
@@ -313,8 +314,8 @@ func (s *server) StopServer(
 func runRPCServer(n *Node, addr string) {
 	// logging.SetLogLevel("sharding-p2p", "DEBUG")
 	// Start a new trace
-	ctx := context.Background()
-	ctx = logger.Start(ctx, "RPCServer")
+	ctxb := context.Background()
+	ctx := logger.Start(ctxb, "RPCServer")
 	defer logger.Finish(ctx)
 	logger.SetTag(ctx, "Node ID %s", n.host.ID().Pretty())
 	serializedSpanCtx, err := logger.SerializeContext(ctx)
@@ -330,7 +331,7 @@ func runRPCServer(n *Node, addr string) {
 		logger.Fatalf("Failed to set up a service listening on %s, err: %v", addr, err)
 	}
 	s := grpc.NewServer()
-	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s, ctx: ctx})
+	pbrpc.RegisterPocServer(s, &server{node: n, serializedSpanCtx: serializedSpanCtx, rpcServer: s, ctx: ctx, bt: []byte{0, 1, 3, 5, 7}})
 
 	// Catch interupt signal
 	c := make(chan os.Signal)
