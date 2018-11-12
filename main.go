@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	mrand "math/rand"
 	"os"
 	"strings"
 
@@ -43,7 +42,6 @@ const (
 func main() {
 	// Parse options from the command line
 
-	seed := flag.Int("seed", 0, "set random seed for id generation")
 	listenIP := flag.String(
 		"ip",
 		defaultIP,
@@ -78,7 +76,7 @@ func main() {
 	if *isClient {
 		runClient(rpcAddr, flag.Args())
 	} else {
-		runServer(*listenIP, *listenPort, *seed, *doBootstrapping, *bootnodesStr, rpcAddr, notifierAddr)
+		runServer(*listenIP, *listenPort, *doBootstrapping, *bootnodesStr, rpcAddr, notifierAddr)
 	}
 }
 
@@ -116,7 +114,6 @@ func runClient(rpcAddr string, cliArgs []string) {
 func runServer(
 	listenIP string,
 	listenPort int,
-	seed int,
 	doBootstrapping bool,
 	bootnodesStr string,
 	rpcAddr string,
@@ -145,7 +142,6 @@ func runServer(
 		ctx,
 		listenIP,
 		listenPort,
-		seed,
 		eventNotifier,
 		doBootstrapping,
 		bootnodes,
@@ -185,24 +181,17 @@ func runServer(
 	// End of tracer setup
 
 	logger.Infof(
-		"Node is listening: seed=%v, addr=%v, peerID=%v",
-		seed,
+		"Node is listening: addr=%v, peerID=%v",
 		fmt.Sprintf("%v:%v", listenIP, listenPort),
 		node.ID().Pretty(),
 	)
 	runRPCServer(node, rpcAddr)
 }
 
-func makeKey(seed int) (ic.PrivKey, peer.ID, error) {
-	// If the seed is zero, use real cryptographic randomness. Otherwise, use a
-	// deterministic randomness source to make generated keys stay the same
-	// across multiple runs
-	r := mrand.New(mrand.NewSource(int64(seed)))
-	// r := rand.Reader
-
+func makeKey() (ic.PrivKey, peer.ID, error) {
 	// Generate a key pair for this host. We will use it at least
 	// to obtain a valid host ID.
-	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	priv, _, err := crypto.GenerateKeyPair(crypto.RSA, 2048)
 	if err != nil {
 		return nil, "", err
 	}
@@ -219,14 +208,13 @@ func makeNode(
 	ctx context.Context,
 	listenIP string,
 	listenPort int,
-	randseed int,
 	eventNotifier EventNotifier,
 	doBootstrapping bool,
 	bootstrapPeers []pstore.PeerInfo) (*Node, error) {
 	// FIXME: should be set to localhost if we don't want to expose it to outside
 	listenAddrString := fmt.Sprintf("/ip4/%v/tcp/%v", listenIP, listenPort)
 
-	priv, _, err := makeKey(randseed)
+	priv, _, err := makeKey()
 	if err != nil {
 		return nil, err
 	}

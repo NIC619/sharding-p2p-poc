@@ -66,7 +66,7 @@ func (s *server) AddPeer(
 	defer logger.Finish(spanctx)
 
 	logger.Debugf("rpcserver:AddPeer: receive=%v", req)
-	_, targetPID, err := makeKey(int(req.Seed))
+	_, targetPID, err := makeKey()
 	mAddr := fmt.Sprintf(
 		"/ip4/%s/tcp/%d/ipfs/%s",
 		req.Ip,
@@ -74,7 +74,7 @@ func (s *server) AddPeer(
 		targetPID.Pretty(),
 	)
 	if err != nil {
-		errMsg := fmt.Errorf("Failed to generate peer key/ID with seed: %v, err: %v", req.Seed, err)
+		errMsg := fmt.Errorf("Failed to generate peer key/ID, err: %v", err)
 		logger.FinishWithErr(spanctx, errMsg)
 		logger.Error(errMsg.Error())
 		return nil, errMsg

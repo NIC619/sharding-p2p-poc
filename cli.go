@@ -14,18 +14,18 @@ import (
 
 func doAddPeer(rpcArgs []string, rpcAddr string) {
 	if len(rpcArgs) != 3 {
-		logger.Fatal("Client: usage: addpeer ip port seed")
+		logger.Fatal("Client: usage: addpeer ip port pid")
 	}
 	targetIP := rpcArgs[0]
 	targetPort, err := strconv.Atoi(rpcArgs[1])
 	if err != nil {
 		logger.Fatalf("Failed to convert string '%v' to integer, err: %v", rpcArgs[1], err)
 	}
-	targetSeed, err := strconv.Atoi(rpcArgs[2])
+	targetPID := rpcArgs[2]
 	if err != nil {
 		logger.Fatalf("Failed to convert string '%v' to integer, err: %v", rpcArgs[2], err)
 	}
-	callRPCAddPeer(rpcAddr, targetIP, targetPort, targetSeed)
+	callRPCAddPeer(rpcAddr, targetIP, targetPort, targetPID)
 }
 
 func doSubShard(rpcArgs []string, rpcAddr string) {
@@ -113,7 +113,7 @@ func doRemovePeer(rpcArgs []string, rpcAddr string) {
 	callRPCRemovePeer(rpcAddr, peerID)
 }
 
-func callRPCAddPeer(rpcAddr string, ipAddr string, port int, seed int) {
+func callRPCAddPeer(rpcAddr string, ipAddr string, port int, pid string) {
 	conn, err := grpc.Dial(rpcAddr, grpc.WithInsecure())
 	if err != nil {
 		logger.Fatalf("Failed to connect to RPC server at %v, err: %v", rpcAddr, err)
@@ -123,7 +123,7 @@ func callRPCAddPeer(rpcAddr string, ipAddr string, port int, seed int) {
 	addPeerReq := &pbrpc.RPCAddPeerRequest{
 		Ip:   ipAddr,
 		Port: PBInt(port),
-		Seed: PBInt(seed),
+		Pid:  pid,
 	}
 	logger.Debugf("rpcclient:AddPeer: sending=%v", addPeerReq)
 	res, err := client.AddPeer(context.Background(), addPeerReq)
