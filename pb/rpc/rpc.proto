@@ -22,7 +22,7 @@ service Poc {
 message RPCAddPeerRequest {
   string ip = 1;
   int64 port = 2;
-  int64 seed = 3;
+  string pid = 3;
 }
 message RPCSubscribeShardRequest {
   repeated int64 shardIDs = 1;
