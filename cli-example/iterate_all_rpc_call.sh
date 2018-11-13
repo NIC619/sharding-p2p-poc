@@ -7,88 +7,78 @@ PORT=10000
 RPCPORT=13000
 LOGLEVEL="DEBUG"
 
-# spinup_node {seed} {other_params}
+# spinup_node {port_increment} {other_params}
 spinup_node() {
     port=$((PORT+$1))
     rpcport=$((RPCPORT+$1))
     p=$@
     params=${@:2}
-    $EXE_NAME -seed=$1 -port=$port -rpcport=$rpcport -loglevel=$LOGLEVEL $params &
+    $EXE_NAME -port=$port -rpcport=$rpcport -loglevel=$LOGLEVEL $params &
 }
 
 cli_prompt() {
     p=$@
-    seed=$1
     params=${@:2}
-    echo "$EXE_NAME -rpcport=$((RPCPORT+seed)) -client $params"
+    echo "$EXE_NAME -rpcport=$((RPCPORT+$1)) -client $params"
 }
 
-# add_peer {seed0} {seed1}
+# add_peer {port_increment_host} {port_increment_peer} {target_pid}
 add_peer() {
-    seed0=$1
-    seed1=$2
-    `cli_prompt $seed0` addpeer $IP $((PORT+seed1)) $seed1
+    target_pid=$3
+    `cli_prompt $1` addpeer $IP $((PORT+$2)) $target_pid
 }
 
-# subscribe_shard {seed} {shard_id} {shard_id} ...
+# subscribe_shard {port_increment} {shard_id} {shard_id} ...
 subscribe_shard() {
     p=$@
-    seed=$1
     params=${@:2}
-    `cli_prompt $seed` subshard $params
+    `cli_prompt $1` subshard $params
 }
 
-# unsubscribe_shard {seed} {shard_id} {shard_id} ...
+# unsubscribe_shard {port_increment} {shard_id} {shard_id} ...
 unsubscribe_shard() {
     p=$@
-    seed=$1
     params=${@:2}
-    `cli_prompt $seed` unsubshard $params
+    `cli_prompt $1` unsubshard $params
 }
 
-# get_subscribe_shard {seed}
+# get_subscribe_shard {port_increment}
 get_subscribe_shard() {
     p=$@
-    seed=$1
-    `cli_prompt $seed` getsubshard
+    `cli_prompt $1` getsubshard
 }
 
-# broadcast_collation {seed} {shard_id} {num_collation} {size} {period}
+# broadcast_collation {port_increment} {shard_id} {num_collation} {size} {period}
 broadcast_collation() {
     p=$@
-    seed=$1
     params=${@:2}
-    `cli_prompt $seed` broadcastcollation $params
+    `cli_prompt $1` broadcastcollation $params
 }
 
-# stop_server {seed}
+# stop_server {port_increment}
 stop_server() {
     p=$@
-    seed=$1
-    `cli_prompt $seed` stop
+    `cli_prompt $1` stop
 }
 
-# listpeer {seed}
+# listpeer {port_increment}
 list_peer() {
     p=$@
-    seed=$1
-    `cli_prompt $seed` listpeer
+    `cli_prompt $1` listpeer
 }
 
 
-# listtopicpeer {seed} {topic0} {topic1} ...
+# listtopicpeer {port_increment} {topic0} {topic1} ...
 list_topic_peer() {
     p=$@
-    seed=$1
-    `cli_prompt $seed` listtopicpeer
+    `cli_prompt $1` listtopicpeer
 }
 
-# remove_peer {seed} peerID
+# remove_peer {port_increment} peerID
 remove_peer() {
     p=$@
-    seed=$1
     params=${@:2}
-    `cli_prompt $seed` removepeer $params
+    `cli_prompt $1` removepeer $params
 }
 
 
