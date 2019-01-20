@@ -29,7 +29,7 @@ def get_docker_host_ip():
         raise ValueError(
             "Failed to get ip in platforms other than Linux and macOS: {}".format(sysname)
         )
-    cmd = 'ifconfig | grep -E "([0-9]{1,3}\\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk \'{ print $2 }\' | cut -f2 -d: | head -n1'  # noqa: E501
+    cmd = 'ifconfig | grep -E "([0-9]{1,3}\\.){3}[0-9]{1,3}" | grep -v 127.0.0.1 | awk \'{ print $2 }\' | tail -n1'  # noqa: E501
     res = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, encoding='utf-8')
     return res.stdout.rstrip()
 
@@ -59,6 +59,10 @@ def make_local_nodes(low, top, bootnodes=None):
         run_node,
         range(low, top),
     )
+    # nodes = []
+    # for i in range(low, top):
+    #     nodes.append(run_node(i))
+
     nodes_sorted = sorted(nodes, key=lambda node: node.seed)
 
     time.sleep(2)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	host "github.com/libp2p/go-libp2p-host"
 	kaddht "github.com/libp2p/go-libp2p-kad-dht"
@@ -63,10 +64,24 @@ func (n *Node) StartBootstrapping(ctx context.Context, bootstrapPeers []pstore.P
 	bootstrapConnect(ctx, n, bootstrapPeers)
 
 	bootstrapCtx, cancel := context.WithCancel(ctx)
-	err := n.dht.Bootstrap(bootstrapCtx)
+	// err := n.dht.Bootstrap(bootstrapCtx)
+	var cfg kaddht.BootstrapConfig
+	cfg = kaddht.DefaultBootstrapConfig
+	cfg.Timeout = time.Duration(1 * time.Second)
+	proc, err := n.dht.BootstrapWithConfig(cfg)
 	if err != nil {
 		return err
 	}
+	// wait till ctx or dht.Context exits.
+	// we have to do it this way to satisfy the Routing interface (contexts)
+	go func() {
+		defer proc.Close()
+		select {
+		case <-bootstrapCtx.Done():
+		case <-n.dht.Context().Done():
+		}
+	}()
+
 	n.doBootstrapping = true
 	n.cancelBootstrapping = cancel
 	return nil

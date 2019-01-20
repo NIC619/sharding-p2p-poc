@@ -2,6 +2,7 @@ import functools
 import logging
 import math
 import time
+from random import randint
 
 from simulation.logs import (
     LOG_BROADCAST_COLLATION_FINISHED,
@@ -10,6 +11,75 @@ from simulation.logs import (
 from simulation.network import (
     Network,
 )
+
+
+def get_degree_map(topology):
+    node_degree_map = {}
+    for con in topology:
+        for i in range(2):
+            cur_degree = node_degree_map.get(con[i])
+            if cur_degree is not None:
+                node_degree_map[con[i]] = cur_degree + 1
+            else:
+                node_degree_map[con[i]] = 1
+    return sorted(node_degree_map.items())
+
+
+def visualize(topology, file_name):
+    import networkx as nx
+    G = nx.Graph()
+    for con in topology:
+        G.add_edge(con[0], con[1])
+
+    import matplotlib.pyplot as plt
+    pos_nodes = nx.spring_layout(G)
+    nx.draw(G, pos_nodes, with_labels=True)
+
+    pos_attrs = {node: (coords[0], coords[1] + 0.08) for node, coords in pos_nodes.items()}
+
+    # node_attrs = nx.get_node_attributes(G, 'shard_id')
+    # custom_node_attrs = {node: attr for node, attr in node_attrs.items()}
+    # nx.draw_networkx_labels(G, pos_attrs, labels=custom_node_attrs)
+
+    plt.savefig(file_name)
+
+
+def trim_connections(network, target_conns_ratio):
+    actual_topo = list(network.get_actual_topology())
+    print(len(actual_topo))
+    normal_nodes_count = len(network.normal_nodes)
+    max_normal_nodes_conns = (normal_nodes_count**2 - normal_nodes_count)/2
+    total_normal_nodes_conns = len(actual_topo) - normal_nodes_count
+    if total_normal_nodes_conns / max_normal_nodes_conns <= target_conns_ratio:
+        # Connections ratio is already below target ratio
+        return
+    else:
+        trimmed_conns_count = 0
+        while (total_normal_nodes_conns - trimmed_conns_count) / max_normal_nodes_conns > target_conns_ratio:
+            print("ratio:", (total_normal_nodes_conns - trimmed_conns_count) / max_normal_nodes_conns)
+            index_to_trim = randint(0, len(actual_topo)-1)
+            if actual_topo[index_to_trim][0] == 0:
+                continue
+            else:
+                network.nodes[actual_topo[index_to_trim][0]].remove_peer(network.nodes[actual_topo[index_to_trim][1]].peer_id)
+                trimmed_conns_count += 1
+                print("trim conn", actual_topo[index_to_trim])
+                del actual_topo[index_to_trim]
+    print(len(actual_topo))
+
+
+def static_nodes_subscribe(static_nodes, num_shards, avg_sub_per_node):
+    assert avg_sub_per_node <= num_shards
+    for i, node in enumerate(static_nodes):
+        inc = i % avg_sub_per_node - avg_sub_per_node // 2
+        sub_shard_list = []
+        for _ in range(avg_sub_per_node + inc):
+            shard_id = randint(0, num_shards-1)
+            while shard_id in sub_shard_list:
+                shard_id = randint(0, num_shards-1)
+            sub_shard_list.append(shard_id)
+        node.subscribe_shard(sub_shard_list)
+        print(node.peer_id, " subscribe to", sub_shard_list)
 
 
 def test_decor(test_func):
@@ -136,11 +206,87 @@ def test_reproduce_bootstrapping_issue():
         print(f"{node}: topic_peers={topic_peers}")
 
 
+@test_decor
+def test_plan():
+    """
+    Steps:
+        - Build network
+        - Provision nodes
+        - Configure network conditions between nodes according to specified test case
+        - Configure actions and behavior between nodes according to specified test case
+        - Output performance data in CSV format
+        - Aggregate data, parse, & present data
+        - Push data to appropriate repo
+        - Reset environment
+    Metrics:
+        - Subscription Time
+        - Discovery Time
+        - Message Propagation Time
+        - Shard Propagation Time
+    """
+    # variables
+    num_validators = 20
+    num_static_nodes = 20
+    num_shards = 10
+    message_size = 0
+    propagation_time = 0
+    # TODO: the following variables are not controllable now
+    bandwidth = 0
+    network_latency = 0
+    packet_loss = 0
+
+    # Build network
+    n = Network(
+        num_bootnodes=1,
+        num_normal_nodes=num_validators+num_static_nodes,
+        topology_option=Network.topology_option.NONE,
+    )
+    print("Sleeping for seconds...", end='')
+    time.sleep(3)
+    print("done")
+    # Provision nodes
+    # FIXME: Configure network conditions between nodes according to specified test case
+
+    actual_topo = n.get_actual_topology()
+    print("actual_topo =", actual_topo)
+    print(get_degree_map(actual_topo))
+    trim_connections(n, 0.3)
+    trimmed_topo = n.get_actual_topology()
+    print("trimmed_topo =", trimmed_topo)
+    print(get_degree_map(trimmed_topo))
+    visualize(trimmed_topo, "network.png")
+
+    print("Sleeping for seconds...", end='')
+    time.sleep(3)
+    print("done")
+
+    # TODO: Configure actions and behavior between nodes according to specified test case
+    validators = n.nodes[len(n.bootnodes):len(n.bootnodes)+num_validators]
+    static_nodes = n.nodes[len(n.bootnodes)+num_validators:len(n.bootnodes)+num_validators+num_static_nodes]
+    static_nodes_subscribe(static_nodes, num_shards, num_shards // 4)
+
+    print("Sleeping for seconds...", end='')
+    time.sleep(3)
+    print("done")
+
+    pass
+    # TODO: [Added] Shutdown the test, according to the event occurred
+    pass
+    # TODO: Output performance data in CSV format
+    #       Should aggregate first, and then output?
+    pass
+    # TODO: Aggregate data, parse, & present data
+    pass
+    # Reset environment
+    pass
+
+
 if __name__ == "__main__":
     l = logging.getLogger("simulation.Network")
     h = logging.StreamHandler()
     h.setLevel(logging.DEBUG)
     l.addHandler(h)
-    test_time_broadcasting_data_single_shard()
-    test_joining_through_bootnodes()
-    test_reproduce_bootstrapping_issue()
+    # test_time_broadcasting_data_single_shard()
+    # test_joining_through_bootnodes()
+    # test_reproduce_bootstrapping_issue()
+    test_plan()

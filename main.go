@@ -81,6 +81,7 @@ func main() {
 	notifierAddr := fmt.Sprintf("%v:%v", *rpcIP, *notifierPort)
 	if *verbose {
 		logging.SetLogLevel("sharding-p2p-poc", "DEBUG")
+		logging.SetLogLevel("dht", "DEBUG")
 	} else {
 		logging.SetLogLevel("sharding-p2p-poc", "ERROR")
 	}
